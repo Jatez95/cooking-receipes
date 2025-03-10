@@ -1,0 +1,5 @@
+# Ignore enviroment constants
+
+.env
+
+receipes-venv
