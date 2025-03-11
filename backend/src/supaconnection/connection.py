@@ -13,5 +13,5 @@ class SupaConnection:
 
     
     def connect(self) -> Client:
-        """establish the connection with supabase"""
+        """Establish the connection with supabase"""
         return self.supabase
