@@ -9,7 +9,7 @@ class Comment:
 
         self.supaconnection = SupaConnection()
 
-    def add_comemnt(self, comment, id_recipe = None, id_user = None, calification = None):
+    def add_comment(self, comment, id_recipe = None, id_user = None, calification = None):
 
         comment_data = {
             'comment' : comment

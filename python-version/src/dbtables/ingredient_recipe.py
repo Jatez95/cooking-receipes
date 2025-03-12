@@ -11,14 +11,16 @@ class IngredientRecipe:
     
     def add_ingredient_recipe(self, id_recipe, id_ingredients, quantity, unit_of_measure):
 
-        ingredient_recipe_data = {}
+        
 
         if id_recipe and id_ingredients and quantity and unit_of_measure:
 
-            ingredient_recipe_data['id_recipe'] = id_recipe
-            ingredient_recipe_data['id_ingredients'] = id_ingredients
-            ingredient_recipe_data['quantity'] = quantity
-            ingredient_recipe_data['unit_of_measure'] = unit_of_measure
+            ingredient_recipe_data = {
+                'id_ingredients' : id_ingredients,
+                'id_recipe' : id_recipe,
+                'quantity' : quantity,
+                'unit_of_measure' : unit_of_measure
+            }
 
             
             response = self.supaconnection.supabase.table('ingredients_recipe').insert(ingredient_recipe_data).execute()

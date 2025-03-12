@@ -1,5 +1,6 @@
 from supaconnection.connection import SupaConnection
-from ingredient_recipe import IngredientRecipe
+from .ingredient_recipe import IngredientRecipe
+from .recipe_category import RecipeCategory
 
 class Recipes:
     def __init__(self):
@@ -26,9 +27,12 @@ class Recipes:
         
         print(recipes_list)
     
-    def get_recipe_by_title(self, title):
+    def get_recipe_by_title(self, title = None):
 
-        response = self.supaconnection.supabase.table('recipe').select('*').execute()
+        if title is None:
+            raise ValueError(f'The recipe title: {title} is None')
+
+        response = self.supaconnection.supabase.table('recipe').select('*').eq('title', title).execute()
 
         self.title = response.data[0]['title']
         self.id_recipe = response.data[0]['id_recipe']
@@ -42,14 +46,15 @@ class Recipes:
         self.title = ""
 
     
-    def add_recipe(
+    async def add_recipe(
         self, 
         title, 
         instructions, 
         id_user = None, 
         description=None, 
         difficulty = None, 
-        ingredients_recipe = None
+        ingredients_recipe = None,
+        category = None
     ):
 
         recipe_data = {
@@ -83,13 +88,15 @@ class Recipes:
             if ingredients_recipe is not None and isinstance(ingredients_recipe, list):
                 table_ingredient_recipe = IngredientRecipe()
 
+                print(ingredients_recipe)
+
                 for ingredient in ingredients_recipe:
-                    if isinstance(ingredient, dict) and ['id_ingredients', 'quantity', 'unit_of_measuer'] in ingredient: # and 'quantity' in ingredient and 'unit_of_measuer' in ingredient this will be used if with the list dosnt work
+                    if isinstance(ingredient, dict) and 'id_ingredients' in ingredient and 'quantity' in ingredient and 'unit_of_measure' in ingredient:
 
                         try:
                             table_ingredient_recipe.add_ingredient_recipe(
                                 id_recipe = new_recipe_id,
-                                id_recipe = ingredient['id_ingredients'],
+                                id_ingredients = ingredient['id_ingredients'],
                                 quantity = ingredient['quantity'],
                                 unit_of_measure = ingredient['unit_of_measure']
                             )
@@ -98,6 +105,20 @@ class Recipes:
                     
                     else:
                         print('invalid ingredient format, skipping')
+        
+            if category is not None and isinstance(category, dict):
+                recipe_category_table = RecipeCategory()
+
+                try: 
+                    recipe_category_table.add_recipe_category(
+                        category_id = category['id_category'],
+                        recipe_id = new_recipe_id
+                    )
+                except ValueError as e:
+                    print(f'Error adding a category to the recipe: {str(e)}')
+            else:
+                print('invalid data to add')
+
         
         return response.data
 
