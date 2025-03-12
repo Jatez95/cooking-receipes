@@ -1,5 +1,5 @@
 # Ignore enviroment constants
 
-.env
+**/.env
 
-receipes-venv
+python-version/receipes-venv
