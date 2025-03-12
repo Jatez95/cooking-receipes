@@ -1,6 +1,8 @@
 from supaconnection.connection import SupaConnection
 from .ingredient_recipe import IngredientRecipe
 from .recipe_category import RecipeCategory
+from .users import Users
+from .ingredients import Ingredients
 
 class Recipes:
     def __init__(self):
@@ -20,30 +22,138 @@ class Recipes:
         response = self.supaconnection.supabase.table('recipes').select('*').execute()
 
         if response:
+
+            recipes_response = response.data
+
             recipes_list = []
-            
-            for i in range(len(response)):
-                recipes_list.append(response.data[i])
-        
-        print(recipes_list)
+
+            for recipe in recipes_response:
+                recipe_data = {}
+                
+
+                recipe_data['recipe_title'] = recipe['title']
+                recipe_data['recipe_description'] = recipe['description']
+                recipe_data['recipe_instructions'] = recipe['instructions']
+                recipe_data['difficulty'] = recipe['difficulty']
+
+                creation_date = recipe['creation_date']
+
+                creation_date = str(creation_date).replace('T' , ' ')
+                recipe_data['creation_date'] = creation_date
+
+                
+                id_user = recipe['id_user']
+                
+                if id_user is not None:
+                    user = Users()
+                    user_name = user.get_user_by_id(id_user)
+
+                    recipe_data['user_creator'] = user_name
+                else:
+                    recipe_data['user_creator'] = 'Anonymous'
+                
+                ingredients_recipe_table = IngredientRecipe()
+
+                ingredients_recipe_data = ingredients_recipe_table.get_data_by_recipe(id_recipe = recipe['id_recipe'])
+
+                if ingredients_recipe_data is not None:
+                    ingredients_list = []
+                    
+                    ingredients_table = Ingredients()
+
+                    for i in range(len(ingredients_recipe_data)):
+                        ingredients_needed = {}
+                        ingredients_needed['unit_of_measure'] = ingredients_recipe_data[i]['unit_of_measure']
+                        ingredients_needed['quantity'] = ingredients_recipe_data[i]['quantity']
+
+
+
+                        ingredient = ingredients_table.get_ingredients_by_id(ingredients_recipe_data[i]['id_ingredients'])
+                        ingredients_needed['ingredient_name'] = ingredient[0]['name']
+
+                        ingredients_list.append(ingredients_needed)
+                    
+                    recipe_data['ingredients_list'] = ingredients_list
+                    
+                    
+                else:
+                    print('This recipe has no ingredients found, skipping')
+                    recipe_data['ingredients_list'] = None
+                    
+                
+                recipes_list.append(recipe_data)
+
+        return recipes_list
+
+
+
+                
+
+                
     
     def get_recipe_by_title(self, title = None):
 
         if title is None:
             raise ValueError(f'The recipe title: {title} is None')
 
-        response = self.supaconnection.supabase.table('recipe').select('*').eq('title', title).execute()
+        response = self.supaconnection.supabase.table('recipes').select('*').eq('title', title).execute()
 
-        self.title = response.data[0]['title']
-        self.id_recipe = response.data[0]['id_recipe']
+        if response:
 
-        if self.title:
-            print(f'Found recipe: {self.title} with id {self.id_recipe}')
-        else:
-            print(f'Recipe not found')
+            recipes_response = response.data[0]
 
-        self.id_recipe = ""
-        self.title = ""
+            recipe_data = {}     
+
+            recipe_data['recipe_title'] = recipes_response['title']
+            recipe_data['recipe_description'] = recipes_response['description']
+            recipe_data['recipe_instructions'] = recipes_response['instructions']
+            recipe_data['difficulty'] = recipes_response['difficulty']
+
+            creation_date = recipes_response['creation_date']
+
+            creation_date = str(creation_date).replace('T' , ' ')
+            recipe_data['creation_date'] = creation_date
+
+                
+            id_user = recipes_response['id_user']
+                
+            if id_user is not None:
+                user = Users()
+                user_name = user.get_user_by_id(id_user)
+
+                recipe_data['user_creator'] = user_name
+            else:
+                recipe_data['user_creator'] = 'Anonymous'
+                
+            ingredients_recipe_table = IngredientRecipe()
+
+            ingredients_recipe_data = ingredients_recipe_table.get_data_by_recipe(id_recipe = recipes_response['id_recipe'])
+
+            if ingredients_recipe_data is not None:
+                ingredients_list = []
+                    
+                ingredients_table = Ingredients()
+
+                for i in range(len(ingredients_recipe_data)):
+                    ingredients_needed = {}
+                    ingredients_needed['unit_of_measure'] = ingredients_recipe_data[i]['unit_of_measure']
+                    ingredients_needed['quantity'] = ingredients_recipe_data[i]['quantity']
+
+
+
+                    ingredient = ingredients_table.get_ingredients_by_id(ingredients_recipe_data[i]['id_ingredients'])
+                    ingredients_needed['ingredient_name'] = ingredient[0]['name']
+
+                    ingredients_list.append(ingredients_needed)
+                    
+                recipe_data['ingredients_list'] = ingredients_list
+                          
+            else:
+                print('This recipe has no ingredients found, skipping')
+                recipe_data['ingredients_list'] = None
+            
+            return recipe_data
+        
 
     
     async def add_recipe(

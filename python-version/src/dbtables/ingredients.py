@@ -25,6 +25,11 @@ class Ingredients:
         else:
             print(f'Ingredient {self.ingredient_name} not found')
     
+    def get_ingredients_by_id(self, ingredient_id):
+        response = self.supaconnection.supabase.table('ingredients').select('*').eq('id_ingredient', ingredient_id).execute()
+        
+        return response.data
+    
     def get_all_ingredients(self):
         
         response = self.supaconnection.supabase.table('ingredients').select('name').execute()

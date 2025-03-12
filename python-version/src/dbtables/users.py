@@ -26,7 +26,7 @@ class Users:
 
         
     
-    def get_user(self, name, password):
+    def select_user(self, name, password):
 
         self.password = hashlib.sha256(password.encode()).hexdigest()
 
@@ -47,6 +47,14 @@ class Users:
         self.id_user = ""
         self.name = ""
         self.email = ""
+
+    def get_user_by_id(self, user_id):
+        
+        response = self.supaconnection.supabase.table('users').select('name').eq('id_user', user_id).execute()
+
+        user_name = response.data[0]['name']
+        
+        return user_name
     
     def change_password(self, name, email, password):
 

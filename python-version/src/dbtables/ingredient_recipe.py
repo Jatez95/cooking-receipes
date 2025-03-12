@@ -37,4 +37,6 @@ class IngredientRecipe:
         
         response = self.supaconnection.supabase.table('ingredients_recipe').select('*').eq('id_recipe', id_recipe).execute()
 
-        print(response.data)
+        if len(response.data) == 0:
+            return None
+        return response.data
