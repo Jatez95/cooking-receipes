@@ -25,7 +25,7 @@ create table if not exists ingredients_recipe (
   id_receipe uuid references receipes(id_receipe) on delete cascade,
   id_ingredients uuid references ingredients(id_ingredient) on delete cascade,
   quantity decimal(5,2) not null,
-  unidad_medida varchar(50),
+  unit_of_measure varchar(50),
   primary key (id_receipe, id_ingredients)
 );
 

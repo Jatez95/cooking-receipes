@@ -156,7 +156,7 @@ class Recipes:
         
 
     
-    async def add_recipe(
+    def add_recipe(
         self, 
         title, 
         instructions, 
@@ -236,16 +236,40 @@ class Recipes:
 
         
     
-    def delete_recipe(self, title):
+    def delete_recipe(self, id_recipe = None):
 
-        response = self.supaconnection.supabase.table('recipes').delete().eq('title', title).execute()
+        if id_recipe is None:
+            raise ValueError(f'Error the id of the recipe is {None}')
 
-        if response:
-            print(f"recipe {title} succesfuly deleted")
-        else:
-            print(f"An error ocurred deleting the recipe {title}")
+        recipe_category_table = RecipeCategory()
+        recipe_category_table.delete_recipe_category(recipe_id = id_recipe)
 
-    def update_recipe(self, title, description = None, new_title = None, instructions = None, difficulty = None):
+        ingredient_recipe_table = IngredientRecipe()
+        ingredient_recipe_table.delete_data_by_recipe_id(id_recipe = id_recipe)
+
+        response = self.supaconnection.supabase.table('recipes').delete().eq('id_recipe', id_recipe).execute()
+
+        delete_confirmation = response.data
+
+        if delete_confirmation:
+            print(f'This: {delete_confirmation} was succesfuly deleted')
+            return delete_confirmation
+        else: 
+            print('An unexpected error has ocurred')
+
+    def update_recipe(
+            self,
+            id_recipe,
+            description = None, 
+            new_title = None, 
+            instructions = None, 
+            difficulty = None, 
+            ingredients_recipe = None,
+            category = None
+        ):
+
+        if id_recipe is None:
+            raise ValueError('Error the id cant be (None)')
 
         recipe_data = {}
 
@@ -266,6 +290,33 @@ class Recipes:
             
             recipe_data['difficulty'] = difficulty
 
-        recipe_response = self.supaconnection.supabase.table('recipes').update(recipe_data).eq('title', title).execute()
+        recipe_response = self.supaconnection.supabase.table('recipes').update(recipe_data).eq('id_recipe', id_recipe).execute()
 
-        print(recipe_response.data)
+        if ingredients_recipe is not None:
+            ingredients_recipe_table = IngredientRecipe()
+
+            recipe_updated = self.supaconnection.supabase.table('recipes').select('id_recipe').eq('id_recipe', id_recipe).execute()
+            id_recipe = recipe_updated.data[0]['id_recipe']
+
+
+            ingredients_recipe_table.check_for_update(id_recipe = id_recipe, ingredients_recipe_objects = ingredients_recipe)    
+    
+        if category is not None and isinstance(category, dict):
+            recipe_category_table = RecipeCategory()
+            old_category_id = recipe_category_table.get_recipe_category_by_recipe(id_recipe = id_recipe)
+
+            print(old_category_id)
+            try:
+                recipe_category_table.update_recipe_category(
+                    category_id = old_category_id,
+                    recipe_id = id_recipe,
+                    new_category = category['id_category']
+                )
+            except ValueError as e:
+                print(f'Error adding a category to the recipe: {str(e)}')
+        else:
+            print('invalid data to add')
+
+
+
+        return recipe_response.data

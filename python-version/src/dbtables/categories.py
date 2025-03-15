@@ -27,6 +27,16 @@ class Categories:
             print(f'The category {category_name} dosnt exists')
         
         self.category_name = ""
+    
+    def get_category_by_id(self, id_category):
+
+        response = self.supaconnection.supabase.table('categories').select('*').eq('id_category', id_category).execute()
+        category_data = response.data
+        if category_data:
+            return category_data
+
+        return None 
+        
 
     def get_all_categories(self):
 
